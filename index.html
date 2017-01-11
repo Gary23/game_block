@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url(./img/timg4.jpg) ;
+
+            /*background-size: contain;*/
+        }
+        /*img {*/
+            /*width: 100%;*/
+            /*/!*height: 100%;*!/*/
+        /*}*/
+
+        #game {
+            position: absolute;
+            width: 450px;
+            height: 600px;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            margin: auto;
+            padding: 0 0px;
+        }
+
+        #canvas {
+            float: right;
+        }
+        #box {
+            float: left;
+            width: 110px;
+            color: #ffffff;
+        }
+        button {
+            display: block;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            width: 80px;
+            height: 30px;
+        }
+
+
+
+
+
+    </style>
+    <script src="js/game.js"></script>
+</head>
+<body>
+<div id="game">
+
+    <canvas width="300" height="600" id="canvas"></canvas>
+    <div id="box">
+        <h2>分数</h2>
+        <p id="score">0</p>
+        <p>说明:</p>
+        <p>→ 右移</p>
+        <p>← 左移</p>
+        <p>↑ 变形</p>
+        <p>↓ 加速</p>
+        <button>开始游戏</button>
+        <button>结束</button>
+    </div>
+
+</div>
+<!--<img src="./img/timg4.jpg" alt=""/>-->
+
+<script type="text/javascript">
+    // 初始化部分
+    var box = document.getElementById('box');
+    var canvas = document.getElementById('canvas');
+    var score = document.getElementById('score');
+    var start = box.getElementsByTagName('button')[0];
+    var end = box.getElementsByTagName('button')[1];
+
+
+    var gc = canvas.getContext('2d');
+
+    var Russia = new Russia({
+        gc:gc,
+        width:canvas.width,
+        height:canvas.height,
+        SquareX:40,
+        SquareY:20,
+        bgColor:'#272822',
+        scoreID:score,
+        line:1
+    })
+
+    start.onclick = function(){
+        Russia.play();
+    }
+
+
+    end.onclick = function(){
+        Russia.gameOver();
+    }
+
+
+
+</script>
+</body>
+</html>
