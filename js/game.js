@@ -2,6 +2,7 @@
  * Created by ypj on 2017/1/11.
  */
 
+//游戏的构造函数,用于接收参数和初始化一些基本数据
 function Russia(obj) {
     if (!obj) {
         return false;
@@ -12,14 +13,14 @@ function Russia(obj) {
     this.scoreID = obj.scoreID;
     this.bgColor = obj.bgColor || '#272822';
     //this.fgColor = obj.fgColor || 'white';
-    this.line = obj.line || 0;
+    this.line = obj.line || 1;
     this.SquareX = obj.SquareX || 40;
     this.SquareY = obj.SquareY || 20;
     this.point = 0;
     this.speed = 400;
 
-    // 鲁玫脢录禄炉
-    this.arr = [ // 路陆驴茅脣霉脫脨碌脛脨脦脳麓
+    // 所有方块的样式,用二维数组表示。
+    this.arr = [
         [[1, 1, 1, 1]],
         [[2, 2], [2, 2]],
         [[3, 3, 0], [0, 3, 3]],
@@ -28,40 +29,41 @@ function Russia(obj) {
         [[6, 0, 0], [6, 6, 6]],
         [[0, 0, 7], [7, 7, 7]]
     ];
+    // 方块默认出现的位置
     this.x = this.SquareY / 2 - 2;
     this.y = 0;
     this.timer = null;
     this.flag = false;
+    // 用于方块变形
     this.arrNew = [];
     for (var i = 0; i < this.SquareY; i++) {
         this.arrNew.push(0);
-    }
-    ;
+    };
     //this.matrix = this.mold();
     this.matrix = null;
     this.data = this.map(this.SquareX, this.SquareY);
-
+    // 绘制一个空白画布
     this.render(this.data, this.gc, this.bgColor);
 
 }
 
-
+// 在原型上扩展游戏需要的方法
 Russia.prototype = {
     constructor: Russia,
 
-
     // 确定一个随机的方块
+    // 0-6中随机生成一个数作为方块数组的索引,确定哪个方块
     mold: function () {
         var num = Math.floor(Math.random() * 7);
         return this.arr[num];
     },
 
 
-    // 游戏地图尺寸函数,参数行r和列c
+    // 绘制游戏地图尺寸函数,参数行和列
     map: function (SquareX, SquareY) {
         var data = [];
         // 创建二维数组
-        // 数组中0代表地图上的方块,1代表移动的那些方块。
+        // 数组中0代表地图上的背景方块,1代表移动的那些方块。
         for (var i = 0; i < SquareX; i++) {
             data.push([]);
             for (var j = 0; j < SquareY; j++) {
@@ -74,14 +76,13 @@ Russia.prototype = {
     // 地图绘制方格
     render: function (data, gc, bgColor) {
         var l = this.line
-        var w = this.width / this.SquareY - l;  // 每个方格的宽和高,间隔10
+        var w = this.width / this.SquareY - l;  // 每个方格的宽和高,间隔1
         var h = this.height / this.SquareX - l;
-
         var rLen = data.length;
         var cLen = data[0].length;
         for (var i = 0; i < rLen; i++) {
             for (var j = 0; j < cLen; j++) {
-                // 创建方块
+                // 创建方块,根据不同的方块绘制不同的颜色
                 switch (data[i][j]) {
                     case 0:
                         gc.fillStyle = bgColor;
@@ -109,6 +110,7 @@ Russia.prototype = {
                         break;
                 }
                 //gc.fillStyle = data[i][j] == 0 ? bgColor : fgColor;
+                // 一次绘制一个方格,直到循环完毕
                 gc.fillRect(j * (w + l) + l, i * (h + l) + l, w, h)
             }
         }
@@ -132,13 +134,13 @@ Russia.prototype = {
         this.render(this.data, this.gc, this.bgColor);
     },
 
-    // 数组翻转
+    // 数组翻转,实际上就是把matrix数组旋转90度
     rotate: function () {
-        var arr = [];
+        var arr = []; // 存放翻转后的数组
         var x = this.matrix[0].length;   // 3
         var y = this.matrix.length;  // 2
         //把arr变成二维数组
-        for (var i = 0; i < x; i++) {
+        for (var i = 0; i < x; i++) {   // 这里是翻转后的行数
             arr.push([]);   // 把matrix的x变为y,实现反转90度的效果,假设matrix是2行3列,现在arr就需要3行2列,所以x和y是颠倒的
         }
         for (var i = 0; i < y; i++) {   // 确定了旋转后的行数,要写入每行中列的数值
@@ -162,7 +164,7 @@ Russia.prototype = {
     },
 
     // 清除落下的痕迹。
-    // 实际使用中,也就是将matrix中所有为1的位置清除为0。接下来再写一个create方法就会在新的位置上重新绘制一个。看起来就像是下落了
+    // 实际使用中,也就是将matrix中所有不为0的位置清除为0。接下来再写一个create方法就会在新的位置上重新绘制一个。看起来就像是下落了
     clearPrev: function (arr) {
         if(arr == null){
             return;
@@ -171,7 +173,7 @@ Russia.prototype = {
         var y = this.y;
         for (var i = 0; i < arr.length; i++) {      // 一次遍历matrix的所有位置看看哪些需要删除
             for (var j = 0; j < arr[i].length; j++) {
-                if (arr[i][j]) {     // 如果matrix是1才清除下落痕迹,0的话没有必要做重复赋值0的操作。
+                if (arr[i][j]) {     // 如果matrix不是0才清除下落痕迹,0的话没有必要做重复赋值0的操作。
                     this.data[i + y][j + x] = 0;
                 }
             }
@@ -185,19 +187,19 @@ Russia.prototype = {
         var x = this.x;
         var y = this.y;
         var len = matrix1.length
-        // 判断方块是否到了底部,到了底部就重新随机生成一个新方块
+        // 第一种情况,判断方块是否到了底部,到了底部就返回true
         if (y + len - 1 >= this.data.length - 1) {   // y是移动过去的行数,len是方块占的行数,加起来如果>=总行数就是到底了,因为得到索引所以length-1,
             return true;
         }
-        // 判断是否碰撞别的方块
+        // 第二种情况,判断是否碰撞别的方块
         var arr = matrix1[len - 1];      // 判断的列数
         var n;     // 判断的行数
         for (var i = 0; i < arr.length; i++) {   // 现在i=0,也就是第一列。等下面把第1列判断完了之后,i=1,开始判断第2列。
             n = len - 1;
-            while (!matrix1[n][i]) {   // 判断matrix在n的行数的第一列是不是1,如果是1就判断不是1就继续找上一行。
+            while (!matrix1[n][i]) {   // 判断matrix在n的行数的第一列是不是非0,如果是非0就判断,不是非0就继续找上一行。
                 n--;
             }
-            if (this.data[y + 1 + n][i + x]) {   // 到这里matrix的这个位置肯定就是1了。也就是方块占得位置。判断matrix这个位置的下面是不是1,是1就说明碰撞了返回true。
+            if (this.data[y + 1 + n][i + x]) {   // 到这里matrix的这个位置肯定就是非0了。也就是方块占得位置。判断matrix这个位置的下面是不是非0,是非0就说明碰撞了返回true。
                 return true;        // y是matrix的最上面一行的位置,+n也就是matrix的行数 + 1 也就是matrix为1的位置的下一行。
             }
         }
@@ -232,10 +234,10 @@ Russia.prototype = {
         if (n < 0) {      // n<0是从右向左
             for (var i = 0; i < matrix1.length; i++) {
                 var index = 0;
-                while (!matrix1[i][index]) {
+                while (!matrix1[i][index]) {    // 如果matrix1的第1列的第1个是0,则在找第1列的第2个,直到找到非0的呢个
                     index++;
                 }
-                if (!this.data[i + y] || this.data[i + y][x + index - 1]) {
+                if (!this.data[i + y] || this.data[i + y][x + index - 1]) {     // 在这里说明找到了第1列的非0项,判断这一项的下面和左面是不是非0,如果是非0则碰到边界了,返回true
                     return true;
                 }
             }
@@ -252,7 +254,7 @@ Russia.prototype = {
         }
     },
 
-
+    // 增加下落速度的函数
     score: function (s) {
         this.scoreID.innerHTML = s;
         if (s > 500) {
@@ -300,16 +302,16 @@ Russia.prototype = {
 
     // 方块下落
     fall: function () {
-        if (this.collideTest(this.matrix)) {
+        if (this.collideTest(this.matrix)) {    // 如果方块落到了最下面,就要生成一个新的方块从最上面落下来
             this.clearLine()
             this.y = 0;      // 新方块位置的初始化
             this.x = this.SquareY / 2 - 2;
             this.matrix = this.mold();
         }
-        if (this.y <= 1 && this.collideTest(this.matrix)) {
+        if (this.y <= 1 && this.collideTest(this.matrix)) {     // 如果落到最上面就提示游戏结束
             this.gameOver();
         }
-        this.clearPrev(this.matrix);
+        this.clearPrev(this.matrix);    // 正常下落,每下落一次都创建新位置并且重绘画布
         this.y++;
         this.create(this.matrix);
     },
@@ -318,11 +320,7 @@ Russia.prototype = {
     // 方块下落的定时器
     auto: function (time) {
         var _this = this;
-        //console.log(time);
-
         _this.timer = setInterval(function () {
-            //console.log(this.fall);
-
             _this.fall();
         }, time)
     },
@@ -330,7 +328,6 @@ Russia.prototype = {
 
     // 开始游戏
     play: function () {
-
         // 游戏初始化
         //this.matrix = this.mold();
         this.matrix = this.mold();
@@ -426,12 +423,5 @@ Russia.prototype = {
                 return;
             }
         }
-
-
-
-
     }
-
-
-
 }
